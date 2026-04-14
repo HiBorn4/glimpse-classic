@@ -110,7 +110,9 @@ export async function triggerDownload(
   }
 
   // All bytes received — build blob and trigger save
-  const blob = new Blob(chunks);
+  const blob = new Blob(
+    chunks.map((chunk) => chunk.buffer as ArrayBuffer)
+  );
   const objectUrl = URL.createObjectURL(blob);
 
   const a = document.createElement('a');

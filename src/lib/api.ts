@@ -103,7 +103,7 @@ export async function triggerDownload(
     const { done, value } = await reader.read();
     if (done) break;
     chunks.push(value);
-    received += value.length;
+    received += value.length; 
     if (onProgress && total > 0) {
       onProgress(Math.min(99, Math.round((received / total) * 100)));
     }

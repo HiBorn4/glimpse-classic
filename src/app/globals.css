@@ -1,0 +1,127 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Wedding Colour Tokens ─────────────────────────────────────────────────── */
+:root {
+  --gold:        #C9922A;
+  --gold-light:  #E8C27A;
+  --gold-pale:   #FDF3E3;
+  --gold-glow:   rgba(201,146,42,0.18);
+  --maroon:      #7C1A2E;
+  --maroon-soft: rgba(124,26,46,0.06);
+  --ivory:       #FDFAF5;
+  --ivory-dark:  #F5EFE0;
+  --text-dark:   #1C1008;
+  --text-mid:    #6B5744;
+  --text-muted:  #A89070;
+}
+
+*  { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  background: #fff;
+  color: var(--text-dark);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DESKTOP (≥ 1025px) — 4-column masonry, full honeycomb
+   ═══════════════════════════════════════════════════════════════════════════ */
+.masonry-grid {
+  column-count: 4;
+  column-gap: 1px;
+}
+.masonry-item {
+  break-inside: avoid;
+  page-break-inside: avoid;
+  margin-bottom: 1px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TABLET (601px – 1024px) — 3-column masonry, compact honeycomb
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 1024px) and (min-width: 601px) {
+  .masonry-grid { column-count: 3; }
+  .honeycomb-wrap { padding: 12px 24px !important; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PHONE (≤ 600px) — strictly 2-column masonry, NO honeycomb (mobile strip)
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 600px) {
+  .masonry-grid {
+    column-count: 2;
+    column-gap: 2px;
+  }
+  .masonry-item { margin-bottom: 2px; }
+  /* Hide desktop honeycomb on phone */
+  .honeycomb-wrap { display: none !important; }
+}
+
+/* ── Photo entrance animation ───────────────────────────────────────────────── */
+/* NOTE: We intentionally do NOT animate opacity here because the StableImg    */
+/* component manages its own opacity (0 → 1) after image load. Having both     */
+/* would cause a double-fade blink. We only do a subtle translateY so the      */
+/* layout feels alive without any flicker.                                     */
+@keyframes photoEnter {
+  from { transform: translateY(10px); }
+  to   { transform: translateY(0); }
+}
+/* Only animate the FIRST batch (cards 1-80). Infinite-scroll appended cards  */
+/* (n+81) get no animation so they don't re-trigger when filters change.       */
+.photo-entry:nth-child(-n+80) {
+  animation: photoEnter 0.28s ease both;
+}
+/* Slight stagger only on first visible row */
+.photo-entry:nth-child(-n+4)  { animation-delay: 0ms; }
+.photo-entry:nth-child(n+5):nth-child(-n+8)  { animation-delay: 20ms; }
+.photo-entry:nth-child(n+9):nth-child(-n+80) { animation-delay: 40ms; }
+
+/* ── Scrollbar ──────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #eee; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #ccc; }
+::selection { background: var(--gold-glow); }
+
+/* ── Desktop / Tablet Honeycomb wrap ────────────────────────────────────────── */
+.honeycomb-wrap {
+  overflow-x: auto;
+  overflow-y: visible;
+  padding: 16px 140px;
+  scrollbar-width: none;
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+  box-sizing: border-box;
+}
+.honeycomb-wrap::-webkit-scrollbar { display: none; }
+
+/* ── Collapsed bar — wedding gold rule lines ─────────────────────────────────  */
+.wedding-rule {
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    var(--gold-light) 35%,
+    var(--gold) 50%,
+    var(--gold-light) 65%,
+    transparent 100%
+  );
+  opacity: 0.4;
+}
+
+/* ── Mobile-only utilities ───────────────────────────────────────────────────── */
+.mobile-only  { display: none; }
+.desktop-only { display: block; }
+
+@media (max-width: 600px) {
+  .mobile-only  { display: block; }
+  .desktop-only { display: none; }
+  /* Tighter padding on phone */
+  .phone-px { padding-left: 12px !important; padding-right: 12px !important; }
+}

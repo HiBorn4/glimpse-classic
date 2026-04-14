@@ -99,7 +99,7 @@ export async function triggerDownload(
   const chunks: Uint8Array[] = [];
   let received = 0;
 
-  while (true) {
+  while (true) { 
     const { done, value } = await reader.read();
     if (done) break;
     chunks.push(value);

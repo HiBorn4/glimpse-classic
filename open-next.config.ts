@@ -1,7 +1,9 @@
-import { defineConfig } from "@opennextjs/cloudflare";
+import type { OpenNextConfig } from "@opennextjs/cloudflare";
 
-export default defineConfig({
+const config: OpenNextConfig = {
   default: {
     runtime: "edge",
   },
-});
+};
+
+export default config;

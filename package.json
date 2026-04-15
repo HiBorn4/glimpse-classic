@@ -5,6 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:cloudflare": "opennextjs-cloudflare build",
+    "deploy": "opennextjs-cloudflare build && cp .open-next/worker.js .open-next/_worker.js && cp -r .open-next/assets/_next .open-next/_next && cp .open-next/assets/wedding-hero.jpg .open-next/wedding-hero.jpg && wrangler pages deploy .open-next --project-name=glimpse-classic-wrangler --commit-dirty=true",
+    "preview": "opennextjs-cloudflare build && wrangler pages dev .open-next",
     "start": "next start",
     "lint": "next lint"
   },

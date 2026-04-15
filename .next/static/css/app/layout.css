@@ -143,8 +143,7 @@ html,
   line-height: 1.5; /* 1 */
   -webkit-text-size-adjust: 100%; /* 2 */
   -moz-tab-size: 4; /* 3 */
-  -o-tab-size: 4;
-     tab-size: 4; /* 3 */
+  tab-size: 4; /* 3 */
   font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; /* 4 */
   font-feature-settings: normal; /* 5 */
   font-variation-settings: normal; /* 6 */
@@ -178,8 +177,7 @@ Add the correct text decoration in Chrome, Edge, and Safari.
 */
 
 abbr:where([title]) {
-  -webkit-text-decoration: underline dotted;
-          text-decoration: underline dotted;
+  text-decoration: underline dotted;
 }
 
 /*
@@ -443,11 +441,6 @@ textarea {
 2. Set the default placeholder color to the user's configured gray 400 color.
 */
 
-input::-moz-placeholder, textarea::-moz-placeholder {
-  opacity: 1; /* 1 */
-  color: #9ca3af; /* 2 */
-}
-
 input::placeholder,
 textarea::placeholder {
   opacity: 1; /* 1 */
@@ -645,9 +638,7 @@ video {
   cursor: pointer;
 }
 .select-none {
-  -webkit-user-select: none;
-     -moz-user-select: none;
-          user-select: none;
+  user-select: none;
 }
 .resize {
   resize: both;
@@ -710,17 +701,22 @@ video {
 .border-t-transparent {
   border-top-color: transparent;
 }
+.bg-primary {
+  --tw-bg-opacity: 1;
+  background-color: rgb(123 47 247 / var(--tw-bg-opacity, 1));
+}
+.bg-primary\/50 {
+  background-color: rgb(123 47 247 / 0.5);
+}
 .bg-white {
   --tw-bg-opacity: 1;
   background-color: rgb(255 255 255 / var(--tw-bg-opacity, 1));
 }
 .object-cover {
-  -o-object-fit: cover;
-     object-fit: cover;
+  object-fit: cover;
 }
 .object-top {
-  -o-object-position: top;
-     object-position: top;
+  object-position: top;
 }
 .p-1 {
   padding: 0.25rem;
@@ -804,6 +800,14 @@ video {
 .text-gray-400 {
   --tw-text-opacity: 1;
   color: rgb(156 163 175 / var(--tw-text-opacity, 1));
+}
+.text-primary {
+  --tw-text-opacity: 1;
+  color: rgb(123 47 247 / var(--tw-text-opacity, 1));
+}
+.text-primary-foreground {
+  --tw-text-opacity: 1;
+  color: rgb(255 255 255 / var(--tw-text-opacity, 1));
 }
 .text-white {
   --tw-text-opacity: 1;
@@ -893,14 +897,11 @@ body {
    DESKTOP (≥ 1025px) — 4-column masonry, full honeycomb
    ═══════════════════════════════════════════════════════════════════════════ */
 .masonry-grid {
-  -moz-column-count: 4;
-       column-count: 4;
-  -moz-column-gap: 1px;
-       column-gap: 1px;
+  column-count: 4;
+  column-gap: 1px;
 }
 .masonry-item {
-  -moz-column-break-inside: avoid;
-       break-inside: avoid;
+  break-inside: avoid;
   page-break-inside: avoid;
   margin-bottom: 1px;
 }
@@ -909,7 +910,7 @@ body {
    TABLET (601px – 1024px) — 3-column masonry, compact honeycomb
    ═══════════════════════════════════════════════════════════════════════════ */
 @media (max-width: 1024px) and (min-width: 601px) {
-  .masonry-grid { -moz-column-count: 3; column-count: 3; }
+  .masonry-grid { column-count: 3; }
   .honeycomb-wrap { padding: 12px 24px !important; }
 }
 
@@ -918,10 +919,8 @@ body {
    ═══════════════════════════════════════════════════════════════════════════ */
 @media (max-width: 600px) {
   .masonry-grid {
-    -moz-column-count: 2;
-         column-count: 2;
-    -moz-column-gap: 2px;
-         column-gap: 2px;
+    column-count: 2;
+    column-gap: 2px;
   }
   .masonry-item { margin-bottom: 2px; }
   /* Hide desktop honeycomb on phone */
@@ -952,7 +951,6 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #eee; border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: #ccc; }
-::-moz-selection { background: var(--gold-glow); }
 ::selection { background: var(--gold-glow); }
 
 /* ── Desktop / Tablet Honeycomb wrap ────────────────────────────────────────── */
@@ -992,6 +990,14 @@ body {
   .desktop-only { display: none; }
   /* Tighter padding on phone */
   .phone-px { padding-left: 12px !important; padding-right: 12px !important; }
+}
+
+.hover\:bg-primary\/50:hover {
+  background-color: rgb(123 47 247 / 0.5);
+}
+
+.hover\:bg-primary\/90:hover {
+  background-color: rgb(123 47 247 / 0.9);
 }
 
 .hover\:underline:hover {

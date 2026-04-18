@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 
+
 interface HeroSectionProps {
   onScrollDown: () => void;
 }
@@ -31,6 +32,12 @@ export function HeroSection({ onScrollDown }: HeroSectionProps) {
     return () => window.removeEventListener('mousemove', onMove);
   }, [isMobile]);
 
+  const HERO_IMAGE    = process.env.NEXT_PUBLIC_HERO_IMAGE ?? '';
+  const COUPLE_NAME_1 = process.env.NEXT_PUBLIC_COUPLE_NAME_1 ?? 'Name 1';
+  const COUPLE_NAME_2 = process.env.NEXT_PUBLIC_COUPLE_NAME_2 ?? 'Name 2';
+  const EVENT_DATE    = process.env.NEXT_PUBLIC_EVENT_DATE ?? '';
+  const EVENT_LOCATION = process.env.NEXT_PUBLIC_EVENT_LOCATION ?? '';
+
   return (
     <div
       ref={heroRef}
@@ -53,8 +60,8 @@ export function HeroSection({ onScrollDown }: HeroSectionProps) {
         }}
       >
         <img
-          src="/wedding-hero.jpg"
-          alt="Pranay & Vaishnavi"
+          src={HERO_IMAGE}
+          alt={`${COUPLE_NAME_1} & ${COUPLE_NAME_2}`}
           className="w-full h-full object-cover object-top"
           fetchPriority="high"
           onError={(e) => {
@@ -112,11 +119,11 @@ export function HeroSection({ onScrollDown }: HeroSectionProps) {
             marginBottom: isMobile ? 12 : 16,
           }}
         >
-          Pranay
+          {COUPLE_NAME_1}
           <span style={{ fontStyle: 'italic', fontWeight: 300, opacity: 0.52, margin: isMobile ? '0 12px' : '0 32px' }}>
             &amp;
           </span>
-          Vaishnavi
+          {COUPLE_NAME_2}
         </h1>
 
         {/* Ornament */}
@@ -135,11 +142,13 @@ export function HeroSection({ onScrollDown }: HeroSectionProps) {
           textTransform: 'uppercase', fontWeight: 300,
           color: 'rgba(255,255,255,0.75)', textShadow: '0 2px 20px rgba(0,0,0,0.45)',
         }}>
-          November 15, 2026
+          {EVENT_DATE}
         </p>
+        {EVENT_LOCATION && (
         <p style={{ fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.38)', marginTop: 6 }}>
-          Mumbai, India
+          {EVENT_LOCATION}
         </p>
+        )}
       </div>
 
       {/* ── Scroll CTA ── */}

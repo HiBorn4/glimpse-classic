@@ -201,7 +201,7 @@ export default function Home() {
         />
 
         {/* Photo grid — keyed by filterKey so animation re-runs on filter change */}
-        <div className="max-w-[1600px] mx-auto py-1">
+        <div className="w-full mx-auto py-1">
           {photos.length === 0 && !fetching ? (
             <div className="text-center py-32">
               <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#ddd" strokeWidth="1" className="mx-auto mb-4">

@@ -260,7 +260,7 @@ interface PhotoGridProps {
 
 export function PhotoGrid({ photos, onPhotoClick }: PhotoGridProps) {
   return (
-    <div className="masonry-grid px-[1px]">
+    <div className="masonry-grid">
       {photos.map((photo, idx) => (
         <div key={photo.filename} className="masonry-item photo-entry">
           <TiltCard onClick={() => onPhotoClick(idx)}>

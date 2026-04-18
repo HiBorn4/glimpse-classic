@@ -15,6 +15,10 @@
   --text-dark:   #1C1008;
   --text-mid:    #6B5744;
   --text-muted:  #A89070;
+
+  /* Responsive column count via CSS variable — set with JS on resize */
+  --masonry-cols: 4;
+  --masonry-gap: 1px;
 }
 
 *  { margin: 0; padding: 0; box-sizing: border-box; }
@@ -28,54 +32,38 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   DESKTOP (≥ 1025px) — 4-column masonry, full honeycomb
+   MASONRY GRID
+   column-count uses a CSS variable driven by viewport width percentage.
+   Gaps are %-based so they scale with the container.
+
+   How columns scale (based on vw thresholds set in JS):
+     < 40vw  → 2 cols  (phones)
+     40–60vw → 3 cols  (large phones / small tablets — but this is full width)
+     60–80vw → 4 cols  (tablets / small laptops)
+     > 80vw  → 5 cols  (desktops)
+
+   Since the grid is always 100% wide, vw == container width,
+   so this is effectively a % breakpoint system with no fixed px values.
    ═══════════════════════════════════════════════════════════════════════════ */
 .masonry-grid {
-  column-count: 4;
-  column-gap: 1px;
+  column-count: var(--masonry-cols);
+  column-gap: var(--masonry-gap);
+  width: 100%;
 }
 .masonry-item {
   break-inside: avoid;
   page-break-inside: avoid;
-  margin-bottom: 1px;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   TABLET (601px – 1024px) — 3-column masonry, compact honeycomb
-   ═══════════════════════════════════════════════════════════════════════════ */
-@media (max-width: 1024px) and (min-width: 601px) {
-  .masonry-grid { column-count: 3; }
-  .honeycomb-wrap { padding: 12px 24px !important; }
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   PHONE (≤ 600px) — strictly 2-column masonry, NO honeycomb (mobile strip)
-   ═══════════════════════════════════════════════════════════════════════════ */
-@media (max-width: 600px) {
-  .masonry-grid {
-    column-count: 2;
-    column-gap: 2px;
-  }
-  .masonry-item { margin-bottom: 2px; }
-  /* Hide desktop honeycomb on phone */
-  .honeycomb-wrap { display: none !important; }
+  margin-bottom: var(--masonry-gap);
 }
 
 /* ── Photo entrance animation ───────────────────────────────────────────────── */
-/* NOTE: We intentionally do NOT animate opacity here because the StableImg    */
-/* component manages its own opacity (0 → 1) after image load. Having both     */
-/* would cause a double-fade blink. We only do a subtle translateY so the      */
-/* layout feels alive without any flicker.                                     */
 @keyframes photoEnter {
   from { transform: translateY(10px); }
   to   { transform: translateY(0); }
 }
-/* Only animate the FIRST batch (cards 1-80). Infinite-scroll appended cards  */
-/* (n+81) get no animation so they don't re-trigger when filters change.       */
 .photo-entry:nth-child(-n+80) {
   animation: photoEnter 0.28s ease both;
 }
-/* Slight stagger only on first visible row */
 .photo-entry:nth-child(-n+4)  { animation-delay: 0ms; }
 .photo-entry:nth-child(n+5):nth-child(-n+8)  { animation-delay: 20ms; }
 .photo-entry:nth-child(n+9):nth-child(-n+80) { animation-delay: 40ms; }
@@ -91,15 +79,15 @@ body {
 .honeycomb-wrap {
   overflow-x: auto;
   overflow-y: visible;
-  padding: 16px 140px;
+  padding: 1% 9%;
   scrollbar-width: none;
-  width: 100vw;
-  position: relative;
-  left: 50%;
-  transform: translateX(-50%);
+  width: 100%;
   box-sizing: border-box;
 }
 .honeycomb-wrap::-webkit-scrollbar { display: none; }
+
+/* Hide honeycomb on phones (< 40% viewport = narrow screens) */
+.honeycomb-hidden { display: none !important; }
 
 /* ── Collapsed bar — wedding gold rule lines ─────────────────────────────────  */
 .wedding-rule {
@@ -119,9 +107,8 @@ body {
 .mobile-only  { display: none; }
 .desktop-only { display: block; }
 
-@media (max-width: 600px) {
-  .mobile-only  { display: block; }
-  .desktop-only { display: none; }
-  /* Tighter padding on phone */
-  .phone-px { padding-left: 12px !important; padding-right: 12px !important; }
-}
+/* Phone styles triggered by JS adding .is-phone to <html> */
+html.is-phone .mobile-only  { display: block; }
+html.is-phone .desktop-only { display: none; }
+html.is-phone .honeycomb-wrap { display: none !important; }
+html.is-phone .phone-px { padding-left: 3% !important; padding-right: 3% !important; }

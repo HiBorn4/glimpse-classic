@@ -71,6 +71,32 @@ const BAR_STYLES = `
   }
   .fb-row::-webkit-scrollbar { display: none; }
 
+  /* Mobile: stack rows vertically */
+  @media (max-width: 600px) {
+    .fb-row {
+      flex-wrap: wrap;
+      min-height: unset;
+      gap: 6px;
+      padding: 8px 10px;
+    }
+    .fb-row > * {
+      flex-shrink: 0;
+    }
+    .fb-mobile-break {
+      width: 100%;
+      height: 0;
+      order: 10;
+    }
+    .fb-right-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      width: 100%;
+      padding: 2px 0 4px;
+    }
+  }
+
   /* Collapsible filter section — pure CSS height transition */
   .fb-filters-wrap {
     overflow: hidden;
@@ -80,7 +106,7 @@ const BAR_STYLES = `
     opacity: 0;
   }
   .fb-filters-wrap.open {
-    max-height: 80px;
+    max-height: 120px;
     opacity: 1;
   }
   .fb-filters-inner {
@@ -93,6 +119,15 @@ const BAR_STYLES = `
     scrollbar-width: none;
   }
   .fb-filters-inner::-webkit-scrollbar { display: none; }
+
+  @media (max-width: 600px) {
+    .fb-filters-inner {
+      flex-wrap: wrap;
+      overflow-x: hidden;
+      gap: 6px;
+      padding: 0 10px 10px;
+    }
+  }
 
   .fb-divider {
     width: 1px;
@@ -199,83 +234,105 @@ export function FilterBar({
       <style>{BAR_STYLES}</style>
       <div style={{ background: 'white' }}>
 
-        {/* ── SINGLE ROW: ceremonies + controls all inline ── */}
-        <div className="fb-row">
-
-          {/* Ceremony pills — flex-shrink-able scroll area */}
+        {/* ── ROW 1: Ceremony pills ── */}
+        <div className="fb-row" style={{ borderBottom: isMobile ? '1px solid #f5f5f5' : '1px solid #f0f0f0' }}>
+          {/* Ceremony pills */}
           <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
             <EventPill ceremonies={ceremonies} active={activeCeremony} onSelect={onCeremony} />
           </div>
 
-          {/* ── Right-side controls, always visible ── */}
-
-          {/* Photo count */}
-          <span className="fb-count">{totalPhotos.toLocaleString()} photos</span>
-
-          {/* Orientation — show inline if not collapsed */}
+          {/* On desktop: all controls inline */}
           {!isMobile && (
             <>
+              {/* Photo count */}
+              <span className="fb-count">{totalPhotos.toLocaleString()} photos</span>
+
               <div className="fb-divider" />
               <OrientationSelector value={orientation} onChange={onOrientation} />
+
+              {selectedPeople.length === 1 && (
+                <>
+                  <div className="fb-divider" />
+                  <span className="fb-mode-label">MODE</span>
+                  <SmoothSwitch checked={onlyMe} onChange={setOnlyMe} labelLeft="Group" labelRight="Solo" selectedCount={1} />
+                </>
+              )}
+              {selectedPeople.length >= 2 && (
+                <>
+                  <div className="fb-divider" />
+                  <span className="fb-mode-label">MODE</span>
+                  <SmoothSwitch checked={exactOnly} onChange={setExactOnly} labelLeft="Group" labelRight="Solo" selectedCount={selectedPeople.length} />
+                </>
+              )}
+
+              {hasActiveFilters && (
+                <>
+                  <div className="fb-divider" />
+                  <button onClick={onClear} className="fb-clear-btn">Clear all</button>
+                </>
+              )}
+
+              <button
+                onClick={onToggleThumbnails}
+                className="fb-icon-btn"
+                style={{
+                  background: showThumbnails ? 'linear-gradient(135deg,#7B2FF7,#FF4081)' : '#f4f4f4',
+                  borderColor: showThumbnails ? 'transparent' : '#e4e4e4',
+                  color: showThumbnails ? 'white' : '#666',
+                  boxShadow: showThumbnails ? '0 2px 8px rgba(123,47,247,0.30)' : 'none',
+                }}
+                title="Toggle people"
+              >
+                <PeopleIcon />
+              </button>
+
+              <button
+                onClick={onToggleFilters}
+                className="fb-icon-btn"
+                style={{
+                  background: showFilters ? '#1a1a1a' : '#f4f4f4',
+                  borderColor: showFilters ? '#1a1a1a' : '#e4e4e4',
+                }}
+                title={showFilters ? 'Hide filters' : 'Show filters'}
+              >
+                <FilterIcon active={showFilters} />
+              </button>
             </>
           )}
 
-          {/* People mode toggle — show inline when people selected */}
-          {selectedPeople.length === 1 && (
-            <>
-              <div className="fb-divider" />
-              <span className="fb-mode-label">MODE</span>
-              <SmoothSwitch checked={onlyMe} onChange={setOnlyMe} labelLeft="Group" labelRight="Solo" selectedCount={1} />
-            </>
+          {/* On mobile: icon buttons stay in row 1, right-aligned */}
+          {isMobile && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+              <span className="fb-count">{totalPhotos.toLocaleString()}</span>
+              <button
+                onClick={onToggleThumbnails}
+                className="fb-icon-btn"
+                style={{
+                  background: showThumbnails ? 'linear-gradient(135deg,#7B2FF7,#FF4081)' : '#f4f4f4',
+                  borderColor: showThumbnails ? 'transparent' : '#e4e4e4',
+                  color: showThumbnails ? 'white' : '#666',
+                  boxShadow: showThumbnails ? '0 2px 8px rgba(123,47,247,0.30)' : 'none',
+                }}
+                title="Toggle people"
+              >
+                <PeopleIcon />
+              </button>
+              <button
+                onClick={onToggleFilters}
+                className="fb-icon-btn"
+                style={{
+                  background: showFilters ? '#1a1a1a' : '#f4f4f4',
+                  borderColor: showFilters ? '#1a1a1a' : '#e4e4e4',
+                }}
+                title={showFilters ? 'Hide filters' : 'Show filters'}
+              >
+                <FilterIcon active={showFilters} />
+              </button>
+            </div>
           )}
-          {selectedPeople.length >= 2 && (
-            <>
-              <div className="fb-divider" />
-              <span className="fb-mode-label">MODE</span>
-              <SmoothSwitch checked={exactOnly} onChange={setExactOnly} labelLeft="Group" labelRight="Solo" selectedCount={selectedPeople.length} />
-            </>
-          )}
-
-          {/* Clear all */}
-          {hasActiveFilters && (
-            <>
-              <div className="fb-divider" />
-              <button onClick={onClear} className="fb-clear-btn">Clear all</button>
-            </>
-          )}
-
-          {/* People (thumbnail) toggle */}
-          <button
-            onClick={onToggleThumbnails}
-            className="fb-icon-btn"
-            style={{
-              background: showThumbnails
-                ? 'linear-gradient(135deg,#7B2FF7,#FF4081)'
-                : '#f4f4f4',
-              borderColor: showThumbnails ? 'transparent' : '#e4e4e4',
-              color: showThumbnails ? 'white' : '#666',
-              boxShadow: showThumbnails ? '0 2px 8px rgba(123,47,247,0.30)' : 'none',
-            }}
-            title="Toggle people"
-          >
-            <PeopleIcon />
-          </button>
-
-          {/* Filter toggle */}
-          <button
-            onClick={onToggleFilters}
-            className="fb-icon-btn"
-            style={{
-              background: showFilters ? '#1a1a1a' : '#f4f4f4',
-              borderColor: showFilters ? '#1a1a1a' : '#e4e4e4',
-            }}
-            title={showFilters ? 'Hide filters' : 'Show filters'}
-          >
-            <FilterIcon active={showFilters} />
-          </button>
         </div>
 
-        {/* ── Mobile extras: orientation collapsible ── */}
+        {/* ── ROW 2 (mobile only): orientation + mode + clear ── */}
         {isMobile && (
           <div
             ref={filtersRef}
@@ -283,6 +340,22 @@ export function FilterBar({
           >
             <div className="fb-filters-inner">
               <OrientationSelector value={orientation} onChange={onOrientation} />
+
+              {selectedPeople.length === 1 && (
+                <>
+                  <div className="fb-divider" />
+                  <span className="fb-mode-label">MODE</span>
+                  <SmoothSwitch checked={onlyMe} onChange={setOnlyMe} labelLeft="Group" labelRight="Solo" selectedCount={1} />
+                </>
+              )}
+              {selectedPeople.length >= 2 && (
+                <>
+                  <div className="fb-divider" />
+                  <span className="fb-mode-label">MODE</span>
+                  <SmoothSwitch checked={exactOnly} onChange={setExactOnly} labelLeft="Group" labelRight="Solo" selectedCount={selectedPeople.length} />
+                </>
+              )}
+
               {hasActiveFilters && (
                 <>
                   <div className="fb-divider" />

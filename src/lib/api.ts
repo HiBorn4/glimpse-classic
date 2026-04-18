@@ -1,4 +1,11 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? '';
+// All /api/* calls go through same-origin relative URLs.
+// Next.js rewrites() in next.config.js proxies them to the per-deployment
+// BACKEND_URL (server-side env, set individually per Vercel project).
+//
+// Do NOT use NEXT_PUBLIC_API_URL here: it's baked into the bundle at build
+// time, which in a multi-client setup causes every client's browser to hit
+// the same hardcoded backend.
+const API_BASE = '';
 
 export type Photo = {
   filename: string;
@@ -17,6 +24,10 @@ export type Person = {
   name: string;
   total_photos: number;
   ceremonies: Record<string, number>;
+  // Backend now sends a direct-to-R2 thumbnail URL with a per-boot cache
+  // buster. When present, use it verbatim — it's already client-specific
+  // and cache-safe.
+  thumbnail_url?: string;
 };
 
 export type EventInfo = {
@@ -53,27 +64,33 @@ export async function apiUpload(path: string, file: File) {
   return res.json();
 }
 
-export function thumbnailUrl(personId: number): string {
-  return `${API_BASE}/api/images/thumbnail/${personId}`;
+/**
+ * Resolve a thumbnail URL for a Person.
+ *
+ * Preference order:
+ *   1. `person.thumbnail_url` if the backend sent one. This is a direct R2
+ *      URL that already contains the client's r2.dev subdomain — so two
+ *      different clients produce two different <img src> strings and the
+ *      browser memory cache cannot collide them.
+ *   2. Fallback: the old proxy endpoint with a fresh per-call cache buster.
+ *      Only used if an older backend without thumbnail_url is running.
+ *
+ * Either way, there is NO persistent client-side cache of thumbnails:
+ * the URL always varies when the backend restarts (new nonce) or when
+ * Person data is re-fetched (new fallback timestamp).
+ */
+export function thumbnailUrl(person: Person | number): string {
+  // Object form: backend-provided URL wins.
+  if (typeof person === 'object' && person !== null) {
+    if (person.thumbnail_url) return person.thumbnail_url;
+    return `${API_BASE}/api/images/thumbnail/${person.person_id}?t=${Date.now()}`;
+  }
+  // Number form (legacy callsites): no Person context, just bust with time.
+  return `${API_BASE}/api/images/thumbnail/${person}?t=${Date.now()}`;
 }
 
 /**
- * Downloads a photo directly to the user's system without any navigation,
- * new tabs, or redirects.
- *
- * How it works:
- *   1. fetch() the backend /api/images/download/... endpoint.
- *      The backend PROXIES the file from R2 and returns it as a same-origin
- *      response with Content-Disposition: attachment — so fetch() has no
- *      CORS issues and the browser never navigates away.
- *   2. Stream the response body, tracking progress via Content-Length.
- *   3. Convert accumulated chunks to a Blob, create an object URL,
- *      and trigger a programmatic <a download> click.
- *   4. Revoke the object URL after a short delay.
- *
- * @param downloadUrl  - relative path like /api/images/download/ceremony/file.jpg
- * @param filename     - the name to save the file as on disk
- * @param onProgress   - optional callback(0–100) for progress bar updates
+ * Downloads a photo directly to the user's system.
  */
 export async function triggerDownload(
   downloadUrl: string,
@@ -82,16 +99,9 @@ export async function triggerDownload(
 ): Promise<void> {
   const url = `${API_BASE}${downloadUrl}`;
 
-  const res = await fetch(url, {
-    // same-origin credentials not needed but keeps cookies if any auth added later
-    credentials: 'same-origin',
-  });
+  const res = await fetch(url, { credentials: 'same-origin' });
+  if (!res.ok) throw new Error(`Download failed: HTTP ${res.status}`);
 
-  if (!res.ok) {
-    throw new Error(`Download failed: HTTP ${res.status}`);
-  }
-
-  // Stream with progress
   const contentLength = res.headers.get('content-length');
   const total = contentLength ? parseInt(contentLength, 10) : 0;
 
@@ -99,20 +109,17 @@ export async function triggerDownload(
   const chunks: Uint8Array[] = [];
   let received = 0;
 
-  while (true) { 
+  while (true) {
     const { done, value } = await reader.read();
     if (done) break;
     chunks.push(value);
-    received += value.length; 
+    received += value.length;
     if (onProgress && total > 0) {
       onProgress(Math.min(99, Math.round((received / total) * 100)));
     }
   }
 
-  // All bytes received — build blob and trigger save
-  const blob = new Blob(
-    chunks.map((chunk) => chunk.buffer as ArrayBuffer)
-  );
+  const blob = new Blob(chunks.map((c) => c.buffer as ArrayBuffer));
   const objectUrl = URL.createObjectURL(blob);
 
   const a = document.createElement('a');
@@ -123,7 +130,6 @@ export async function triggerDownload(
   a.click();
   document.body.removeChild(a);
 
-  // Revoke after browser has had time to start the download
   setTimeout(() => URL.revokeObjectURL(objectUrl), 10_000);
 }
 

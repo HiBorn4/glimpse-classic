@@ -87,7 +87,7 @@ function HoneycombCell({
           transition: 'border-color 0.2s, box-shadow 0.2s',
         }}>
           <img
-            src={thumbnailUrl(person.person_id)}
+            src={thumbnailUrl(person)}
             alt={label || 'Guest'}
             width={SIZE} height={SIZE}
             loading="lazy" decoding="async"

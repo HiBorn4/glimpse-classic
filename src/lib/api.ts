@@ -132,7 +132,8 @@ export async function triggerDownload(
     if (total > 0) onProgress(Math.min(99, Math.round((received / total) * 100)));
   }
 
-  const blob = new Blob(chunks);
+  const blob = new Blob(chunks.map(chunk => chunk instanceof Uint8Array ? chunk : new Uint8Array(chunk)));
+
   const objectUrl = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = objectUrl;

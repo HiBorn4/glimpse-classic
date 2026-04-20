@@ -48,7 +48,7 @@ const responsiveScript = `
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         {API_URL ? <link rel="preconnect" href={API_URL} /> : null}
         {R2_URL  ? <link rel="dns-prefetch" href={R2_URL} /> : null}

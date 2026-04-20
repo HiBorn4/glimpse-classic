@@ -5,29 +5,24 @@ import { Photo, triggerDownload } from '@/lib/api';
 
 // ── Download HD button — bottom-right on grid hover ───────────────────────────
 function DownloadBtn({ photo }: { photo: Photo }) {
+  // No more progress % — the browser's native download UI shows progress
+  // now that download_url points straight at R2's CDN.
   const [status, setStatus] = useState<'idle' | 'downloading' | 'done'>('idle');
-  const [progress, setProgress] = useState(0);
 
   const handleDownload = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (status !== 'idle') return;
 
     setStatus('downloading');
-    setProgress(0);
 
     try {
-      await triggerDownload(photo.download_url, photo.filename, (pct) => {
-        setProgress(pct);
-      });
-      setProgress(100);
-      setStatus('done');
-      setTimeout(() => {
-        setStatus('idle');
-        setProgress(0);
-      }, 2500);
+      // No onProgress → fast path: native <a download> click, no blob buffer.
+      await triggerDownload(photo.download_url, photo.filename);
+      // Flip to "done" almost immediately; the browser owns the transfer now.
+      setTimeout(() => setStatus('done'), 250);
+      setTimeout(() => setStatus('idle'), 2500);
     } catch {
       setStatus('idle');
-      setProgress(0);
     }
   };
 
@@ -64,42 +59,36 @@ function DownloadBtn({ photo }: { photo: Photo }) {
         fill="none"
         style={{ display: 'block', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.65))' }}
       >
-        {/* Background circle — fills as progress bar */}
+        {/* Background circle */}
         <circle cx="17" cy="17" r="16" fill="rgba(0,0,0,0.45)" />
 
-        {/* Progress arc ring when downloading */}
+        {/* Indeterminate spinner while the click is propagating */}
         {isDownloading && (
           <>
-            {/* Track */}
             <circle
               cx="17" cy="17" r="14"
-              stroke="rgba(255,255,255,0.2)"
+              stroke="rgba(255,255,255,0.22)"
               strokeWidth="2.5"
               fill="none"
             />
-            {/* Fill arc — strokeDasharray trick */}
             <circle
               cx="17" cy="17" r="14"
               stroke="white"
               strokeWidth="2.5"
               fill="none"
               strokeLinecap="round"
-              strokeDasharray={`${2 * Math.PI * 14}`}
-              strokeDashoffset={`${2 * Math.PI * 14 * (1 - progress / 100)}`}
-              transform="rotate(-90 17 17)"
-              style={{ transition: 'stroke-dashoffset 0.2s ease' }}
+              strokeDasharray={`${2 * Math.PI * 14 * 0.25} ${2 * Math.PI * 14}`}
+              style={{
+                transformOrigin: '17px 17px',
+                animation: 'glimpse-dl-spin 0.9s linear infinite',
+              }}
             />
-            {/* Percentage text */}
-            <text
-              x="17" y="21"
-              textAnchor="middle"
-              fill="white"
-              fontSize="8"
-              fontWeight="700"
-              fontFamily="Inter, -apple-system, sans-serif"
-            >
-              {progress}%
-            </text>
+            <style>{`
+              @keyframes glimpse-dl-spin {
+                from { transform: rotate(-90deg); }
+                to   { transform: rotate(270deg); }
+              }
+            `}</style>
           </>
         )}
 
@@ -113,6 +102,7 @@ function DownloadBtn({ photo }: { photo: Photo }) {
               strokeWidth="2.2"
               strokeLinecap="round"
               strokeLinejoin="round"
+              fill="none"
             />
           </>
         )}

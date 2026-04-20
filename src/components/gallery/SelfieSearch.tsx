@@ -99,7 +99,7 @@ export function SelfieOverlay({ onMatch, onClose }: SelfieOverlayProps) {
     try {
       // Use a permissive threshold (0.35) so partial/angled faces still match.
       // The backend default is 0.35 now, but we pass explicitly for clarity.
-      const res = await apiUpload('/api/search/selfie?threshold=0.35&top_k=5', file);
+      const res = await apiUpload('/api/search/selfie?threshold=0.1&top_k=5', file);
       if (res.matches?.length > 0) {
         onMatch(res.matches[0].person_id);
       } else if (res.error) {

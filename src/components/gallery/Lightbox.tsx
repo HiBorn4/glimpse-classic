@@ -12,8 +12,11 @@ interface LightboxProps {
 
 export function Lightbox({ photo, onClose, onPrev, onNext }: LightboxProps) {
   const [isMobile, setIsMobile] = useState(false);
+  // Simpler state machine now: we no longer track progress %.  The native
+  // browser download shows its own progress UI, and the download_url points
+  // straight at R2 — there's nothing useful we can measure client-side
+  // without forcing a slow fetch+blob path.
   const [status, setStatus] = useState<'idle' | 'downloading' | 'done'>('idle');
-  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     setIsMobile(window.innerWidth <= 600);
@@ -34,21 +37,18 @@ export function Lightbox({ photo, onClose, onPrev, onNext }: LightboxProps) {
     if (status !== 'idle') return;
 
     setStatus('downloading');
-    setProgress(0);
 
     try {
-      await triggerDownload(photo.download_url, photo.filename, (pct) => {
-        setProgress(pct);
-      });
-      setProgress(100);
-      setStatus('done');
-      setTimeout(() => {
-        setStatus('idle');
-        setProgress(0);
-      }, 2500);
+      // No onProgress callback → triggerDownload takes the fast native path.
+      // The <a download> click fires in <50ms; the browser handles the
+      // rest (including its own progress UI).
+      await triggerDownload(photo.download_url, photo.filename);
+      // The click has fired; flip to "done" almost immediately so the user
+      // gets instant feedback.  The actual save continues in the browser.
+      setTimeout(() => setStatus('done'), 250);
+      setTimeout(() => setStatus('idle'), 2500);
     } catch {
       setStatus('idle');
-      setProgress(0);
     }
   };
 
@@ -129,7 +129,7 @@ export function Lightbox({ photo, onClose, onPrev, onNext }: LightboxProps) {
             <polyline points="20 6 9 17 4 12" />
           </svg>
         ) : isDownloading ? (
-          /* Circular progress ring */
+          /* Indeterminate spinner — the browser owns the real progress bar now */
           <svg width="16" height="16" viewBox="0 0 36 36" fill="none" style={{ flexShrink: 0 }}>
             <circle cx="18" cy="18" r="15" stroke="rgba(255,255,255,0.25)" strokeWidth="3" />
             <circle
@@ -137,11 +137,19 @@ export function Lightbox({ photo, onClose, onPrev, onNext }: LightboxProps) {
               stroke="white"
               strokeWidth="3"
               strokeLinecap="round"
-              strokeDasharray={`${2 * Math.PI * 15}`}
-              strokeDashoffset={`${2 * Math.PI * 15 * (1 - progress / 100)}`}
+              strokeDasharray={`${2 * Math.PI * 15 * 0.25} ${2 * Math.PI * 15}`}
               transform="rotate(-90 18 18)"
-              style={{ transition: 'stroke-dashoffset 0.2s ease' }}
+              style={{
+                transformOrigin: '18px 18px',
+                animation: 'glimpse-spin 0.9s linear infinite',
+              }}
             />
+            <style>{`
+              @keyframes glimpse-spin {
+                from { transform: rotate(-90deg); }
+                to   { transform: rotate(270deg); }
+              }
+            `}</style>
           </svg>
         ) : (
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white"
@@ -153,12 +161,7 @@ export function Lightbox({ photo, onClose, onPrev, onNext }: LightboxProps) {
         )}
 
         {/* Label */}
-        {isDone
-          ? 'Saved!'
-          : isDownloading
-            ? `${progress}%`
-            : 'Download HD'
-        }
+        {isDone ? 'Saved!' : isDownloading ? 'Starting…' : 'Download HD'}
       </button>
 
       {/* ── Close — top right corner ── */}
